@@ -25,9 +25,9 @@ import "../../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js";
 import "../../assets/js/index.js";
 export default {
     name: '#app',
-    components:{
-        TopCork, BotCork, MenuCork
-    }
+    // components:{
+    //     TopCork, BotCork, MenuCork
+    // }
 }
 </script>
 <style>
@@ -40,6 +40,5 @@ export default {
 @import "../../assets/css/dark-theme.css";
 @import "../../assets/css/semi-dark.css";
 @import "../../assets/css/header-colors.css";
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap");
-@import "../../assets/images/favicon-32x32.png";    
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap");    
 </style>
