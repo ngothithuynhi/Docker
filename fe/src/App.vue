@@ -1,31 +1,26 @@
 <script setup>
 import { ref } from 'vue'
 
-const file = ref(null)
+const imageUrl = ref('')
 const uploadedUrl = ref(null)
 const message = ref('')
 
-const handleFileUpload = (event) => {
-  file.value = event.target.files[0]
-}
-
 const submitFile = async () => {
-    if (!file.value) {
-        message.value = "Please select a file first."
+    if (!imageUrl.value) {
+        message.value = "Please enter an image URL first."
         return
     }
 
-    const formData = new FormData()
-    formData.append('image', file.value)
-
     try {
-        // Pointing to localhost:8000 exposed by Docker
         const response = await fetch('http://localhost:8000/api/upload', {
             method: 'POST',
-            body: formData,
             headers: {
+                'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                image_url: imageUrl.value
+            })
         })
         
         const data = await response.json()
@@ -37,18 +32,18 @@ const submitFile = async () => {
             }
         } else {
             console.error('Server Error:', data)
-            message.value = 'Upload failed: ' + (data.message || data.error || 'Unknown error')
+            message.value = 'Submission failed: ' + (data.message || data.error || 'Unknown error')
         }
     } catch (error) {
         console.error('Network Error:', error)
-        message.value = 'Upload failed: ' + error.message
+        message.value = 'Submission failed: ' + error.message
     }
 }
 </script>
 
 <template>
   <div class="container">
-    <h1>Docker Image Upload Demo</h1>
+    <h1>Docker Image URL Demo</h1>
     <br>
     <h5>Ngô Thị Thúy Nhi</h5>
     <h5>Nguyễn Phương Ngân</h5>
@@ -56,17 +51,15 @@ const submitFile = async () => {
     <h5>Trương Đức Gia Bảo</h5>
     <h5>Lê Xuân Thành Hưng</h5>
     <div class="upload-box">
-      <input type="file" @change="handleFileUpload" accept="image/*" />
-      <button @click="submitFile" :disabled="!file">Upload Image</button>
+      <input type="text" v-model="imageUrl" placeholder="Enter Image URL here..." class="url-input" />
+      <button @click="submitFile" :disabled="!imageUrl">Submit URL</button>
     </div>
 
     <p v-if="message" class="message">{{ message }}</p>
 
     <div v-if="uploadedUrl" class="preview">
-      <h3>Uploaded Result:</h3>
-      <!-- Note: localhost:8000 might not work if browser can't reach it correctly without CORS, 
-           but Docker mapping 8000:8000 should work for browser -->
-      <img :src="uploadedUrl" alt="Uploaded Image" />
+      <h3>Result:</h3>
+      <img :src="uploadedUrl" alt="Submitted Image" />
     </div>
   </div>
 </template>
@@ -85,6 +78,18 @@ const submitFile = async () => {
   padding: 20px;
   border: 2px dashed #ccc;
   border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.url-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 60%;
+  font-size: 16px;
 }
 
 button {
@@ -95,7 +100,6 @@ button {
   border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
-  margin-left: 10px;
 }
 
 button:disabled {

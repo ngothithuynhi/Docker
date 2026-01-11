@@ -10,24 +10,17 @@ class ImageController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_url' => 'required|url',
         ]);
 
-        if ($request->hasFile('image')) {
-            $imageName = time().'.'.$request->image->extension();
-            $request->image->storeAs('public/images', $imageName);
+        $url = $request->image_url;
 
-            // Return URL (assuming standard storage link)
-            $url = asset('storage/images/'.$imageName);
+        // In a real app, you might save this URL to a database here
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Image uploaded successfully!',
-                'image' => $imageName,
-                'url' => $url
-            ]);
-        }
-
-        return response()->json(['error' => 'No image uploaded'], 400);
+        return response()->json([
+            'success' => true,
+            'message' => 'Image linked successfully!',
+            'url' => $url
+        ]);
     }
 }
