@@ -1,35 +1,56 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const imageUrl = ref('')
-const uploadedUrl = ref(null)
+const fileInput = ref(null)
+const selectedFile = ref(null)
 const message = ref('')
+const images = ref([])
+
+const fetchImages = async () => {
+    try {
+        const response = await fetch('http://localhost:8000/api/images')
+        const data = await response.json()
+        if (data.images) {
+            images.value = data.images
+        }
+    } catch (error) {
+        console.error('Error fetching images:', error)
+    }
+}
+
+onMounted(() => {
+    fetchImages()
+})
+
+const handleFileChange = (event) => {
+    selectedFile.value = event.target.files[0]
+}
 
 const submitFile = async () => {
-    if (!imageUrl.value) {
-        message.value = "Please enter an image URL first."
+    if (!selectedFile.value) {
+        message.value = "Please select a file first."
         return
     }
+
+    const formData = new FormData()
+    formData.append('image_file', selectedFile.value)
 
     try {
         const response = await fetch('http://localhost:8000/api/upload', {
             method: 'POST',
+            body: formData, // fetch automatically sets Content-Type to multipart/form-data
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                image_url: imageUrl.value
-            })
+            }
         })
         
         const data = await response.json()
         
         if (response.ok) {
             message.value = data.message || 'Success!'
-            if (data.url) {
-                uploadedUrl.value = data.url
-            }
+            fileInput.value.value = ''
+            selectedFile.value = null
+            fetchImages() // Reload list
         } else {
             console.error('Server Error:', data)
             message.value = 'Submission failed: ' + (data.message || data.error || 'Unknown error')
@@ -43,23 +64,35 @@ const submitFile = async () => {
 
 <template>
   <div class="container">
-    <h1>Docker Image URL Demo</h1>
+    <h1>Docker Image Upload Demo</h1>
     <br>
     <h5>Ngô Thị Thúy Nhi</h5>
     <h5>Nguyễn Phương Ngân</h5>
     <h5>Trịnh Hải Nam</h5>
     <h5>Trương Đức Gia Bảo</h5>
     <h5>Lê Xuân Thành Hưng</h5>
+
     <div class="upload-box">
-      <input type="text" v-model="imageUrl" placeholder="Enter Image URL here..." class="url-input" />
-      <button @click="submitFile" :disabled="!imageUrl">Submit URL</button>
+      <input 
+        type="file" 
+        ref="fileInput" 
+        @change="handleFileChange" 
+        class="file-input" 
+        accept="image/*"
+      />
+      <button @click="submitFile" :disabled="!selectedFile">Upload Image</button>
     </div>
 
     <p v-if="message" class="message">{{ message }}</p>
 
-    <div v-if="uploadedUrl" class="preview">
-      <h3>Result:</h3>
-      <img :src="uploadedUrl" alt="Submitted Image" />
+    <div class="gallery">
+        <h2>Gallery</h2>
+        <div class="image-grid">
+            <div v-for="image in images" :key="image.id" class="image-card">
+                <img :src="image.url" :alt="image.filename" />
+                <p>{{ image.filename }}</p>
+            </div>
+        </div>
     </div>
   </div>
 </template>
@@ -82,14 +115,13 @@ const submitFile = async () => {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.url-input {
+.file-input {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  width: 60%;
-  font-size: 16px;
 }
 
 button {
@@ -116,10 +148,37 @@ button:hover:not(:disabled) {
   font-weight: bold;
 }
 
-.preview img {
-  max-width: 100%;
+.gallery {
+  margin-top: 40px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
   margin-top: 20px;
+}
+
+.image-card {
+  border: 1px solid #eee;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.image-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.image-card p {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

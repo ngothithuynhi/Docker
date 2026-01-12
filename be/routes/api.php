@@ -10,3 +10,4 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/upload', [ImageController::class, 'upload']);
+Route::get('/images', [ImageController::class, 'index']);
