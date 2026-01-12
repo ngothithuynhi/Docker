@@ -6,59 +6,63 @@ const selectedFile = ref(null)
 const message = ref('')
 const images = ref([])
 
+
 const fetchImages = async () => {
-    try {
-        const response = await fetch('http://localhost:8000/api/images')
-        const data = await response.json()
-        if (data.images) {
-            images.value = data.images
-        }
-    } catch (error) {
-        console.error('Error fetching images:', error)
+  try {
+    const hostname = window.location.hostname;
+    const response = await fetch(`http://${hostname}:8000/api/images`)
+    const data = await response.json()
+    if (data.images) {
+
+      images.value = data.images
     }
+  } catch (error) {
+    console.error('Error fetching images:', error)
+  }
 }
 
 onMounted(() => {
-    fetchImages()
+  fetchImages()
 })
 
 const handleFileChange = (event) => {
-    selectedFile.value = event.target.files[0]
+  selectedFile.value = event.target.files[0]
 }
 
 const submitFile = async () => {
-    if (!selectedFile.value) {
-        message.value = "Please select a file first."
-        return
-    }
+  if (!selectedFile.value) {
+    message.value = "Please select a file first."
+    return
+  }
 
-    const formData = new FormData()
-    formData.append('image_file', selectedFile.value)
+  const formData = new FormData()
+  formData.append('image_file', selectedFile.value)
 
-    try {
-        const response = await fetch('http://localhost:8000/api/upload', {
-            method: 'POST',
-            body: formData, // fetch automatically sets Content-Type to multipart/form-data
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-        
-        const data = await response.json()
-        
-        if (response.ok) {
-            message.value = data.message || 'Success!'
-            fileInput.value.value = ''
-            selectedFile.value = null
-            fetchImages() // Reload list
-        } else {
-            console.error('Server Error:', data)
-            message.value = 'Submission failed: ' + (data.message || data.error || 'Unknown error')
-        }
-    } catch (error) {
-        console.error('Network Error:', error)
-        message.value = 'Submission failed: ' + error.message
+  try {
+    const hostname = window.location.hostname;
+    const response = await fetch(`http://${hostname}:8000/api/upload`, {
+      method: 'POST',
+      body: formData, // fetch automatically sets Content-Type to multipart/form-data
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+
+    const data = await response.json()
+
+    if (response.ok) {
+      message.value = data.message || 'Success!'
+      fileInput.value.value = ''
+      selectedFile.value = null
+      fetchImages() // Reload list
+    } else {
+      console.error('Server Error:', data)
+      message.value = 'Submission failed: ' + (data.message || data.error || 'Unknown error')
     }
+  } catch (error) {
+    console.error('Network Error:', error)
+    message.value = 'Submission failed: ' + error.message
+  }
 }
 </script>
 
@@ -73,26 +77,20 @@ const submitFile = async () => {
     <h5>Lê Xuân Thành Hưng</h5>
 
     <div class="upload-box">
-      <input 
-        type="file" 
-        ref="fileInput" 
-        @change="handleFileChange" 
-        class="file-input" 
-        accept="image/*"
-      />
+      <input type="file" ref="fileInput" @change="handleFileChange" class="file-input" accept="image/*" />
       <button @click="submitFile" :disabled="!selectedFile">Upload Image</button>
     </div>
 
     <p v-if="message" class="message">{{ message }}</p>
 
     <div class="gallery">
-        <h2>Gallery</h2>
-        <div class="image-grid">
-            <div v-for="image in images" :key="image.id" class="image-card">
-                <img :src="image.url" :alt="image.filename" />
-                <p>{{ image.filename }}</p>
-            </div>
+      <h2>Gallery</h2>
+      <div class="image-grid">
+        <div v-for="image in images" :key="image.id" class="image-card">
+          <img :src="image.url" :alt="image.filename" />
+          <p>{{ image.filename }}</p>
         </div>
+      </div>
     </div>
   </div>
 </template>
@@ -163,7 +161,7 @@ button:hover:not(:disabled) {
   border: 1px solid #eee;
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .image-card img {

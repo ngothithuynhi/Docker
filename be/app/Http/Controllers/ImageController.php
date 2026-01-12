@@ -10,8 +10,13 @@ class ImageController extends Controller
 {
     public function index()
     {
+        $images = Image::latest()->get()->map(function ($image) {
+            $image->url = Storage::url($image->path);
+            return $image;
+        });
+
         return response()->json([
-            'images' => Image::latest()->get()
+            'images' => $images
         ]);
     }
 
@@ -30,7 +35,7 @@ class ImageController extends Controller
             $path = $file->storeAs('images', $filename, 'public');
 
             // Get URL based on disk config
-            $url = Storage::url($path); 
+            $url = Storage::url($path);
 
             $image = Image::create([
                 'filename' => $filename,
