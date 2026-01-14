@@ -11,7 +11,7 @@ class ImageController extends Controller
     public function index()
     {
         $images = Image::latest()->get()->map(function ($image) {
-            $image->url = Storage::url($image->path);
+            $image->url = url('/serve-image/' . $image->filename);
             return $image;
         });
 
@@ -34,8 +34,8 @@ class ImageController extends Controller
             // 'public' disk usually links to storage/app/public, accessible via /storage/
             $path = $file->storeAs('images', $filename, 'public');
 
-            // Get URL based on disk config
-            $url = Storage::url($path);
+            // Get URL based on custom route
+            $url = url('/serve-image/' . $filename);
 
             $image = Image::create([
                 'filename' => $filename,
