@@ -23,7 +23,7 @@ services:
             - DB_DATABASE=laravel_docker
             - DB_USERNAME=laravel
             - DB_PASSWORD=root
-            - APP_URL=http://192.168.1.19:8000
+            - APP_URL=http://172.25.17.73:8000
             - FILESYSTEM_DISK=public
 
     frontend:

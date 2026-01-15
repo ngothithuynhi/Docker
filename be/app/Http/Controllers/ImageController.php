@@ -10,10 +10,7 @@ class ImageController extends Controller
 {
     public function index()
     {
-        $images = Image::latest()->get()->map(function ($image) {
-            $image->url = url('/serve-image/' . $image->filename);
-            return $image;
-        });
+        $images = Image::latest()->get();
 
         return response()->json([
             'images' => $images
@@ -23,37 +20,27 @@ class ImageController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'image_file' => 'required|image|max:5120', // Max 5MB
+            'image_url' => 'required|url',
         ]);
 
-        if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-
-            // Use configured disk (public or s3)
-            // 'public' disk usually links to storage/app/public, accessible via /storage/
-            $path = $file->storeAs('images', $filename, 'public');
-
-            // Get URL based on custom route
-            $url = url('/serve-image/' . $filename);
-
-            $image = Image::create([
-                'filename' => $filename,
-                'path' => $path,
-                'url' => $url,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Image uploaded successfully!',
-                'url' => $url,
-                'data' => $image
-            ]);
+        $url = $request->input('image_url');
+        // Extract filename from URL or use a default/timestamp
+        $filename = basename(parse_url($url, PHP_URL_PATH));
+        if (empty($filename)) {
+            $filename = 'image_' . time();
         }
 
+        $image = Image::create([
+            'filename' => $filename,
+            'path' => null, // No local path
+            'url' => $url,
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Upload failed'
-        ], 500);
+            'success' => true,
+            'message' => 'Image URL saved successfully!',
+            'url' => $url,
+            'data' => $image
+        ]);
     }
 }

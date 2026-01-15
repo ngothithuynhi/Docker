@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,13 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('images', function (Blueprint $table) {
-            $table->id();
-            $table->string('filename')->nullable();
-            $table->string('path')->nullable();
-            $table->string('url');
-            $table->timestamps();
-        });
+        // Using raw SQL to avoid doctrine/dbal dependency for modifying columns
+        DB::statement('ALTER TABLE images MODIFY path VARCHAR(255) NULL');
     }
 
     /**
@@ -25,6 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('images');
+        DB::statement('ALTER TABLE images MODIFY path VARCHAR(255) NOT NULL');
     }
 };

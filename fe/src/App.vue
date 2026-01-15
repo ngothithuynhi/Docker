@@ -1,8 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const fileInput = ref(null)
-const selectedFile = ref(null)
+const imageUrl = ref('')
 const message = ref('')
 const images = ref([])
 
@@ -25,25 +24,19 @@ onMounted(() => {
   fetchImages()
 })
 
-const handleFileChange = (event) => {
-  selectedFile.value = event.target.files[0]
-}
-
-const submitFile = async () => {
-  if (!selectedFile.value) {
-    message.value = "Please select a file first."
+const submitUrl = async () => {
+  if (!imageUrl.value) {
+    message.value = "Please enter an image URL."
     return
   }
-
-  const formData = new FormData()
-  formData.append('image_file', selectedFile.value)
 
   try {
     const hostname = window.location.hostname;
     const response = await fetch(`http://${hostname}:8000/api/upload`, {
       method: 'POST',
-      body: formData, // fetch automatically sets Content-Type to multipart/form-data
+      body: JSON.stringify({ image_url: imageUrl.value }),
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     })
@@ -52,8 +45,7 @@ const submitFile = async () => {
 
     if (response.ok) {
       message.value = data.message || 'Success!'
-      fileInput.value.value = ''
-      selectedFile.value = null
+      imageUrl.value = ''
       fetchImages() // Reload list
     } else {
       console.error('Server Error:', data)
@@ -68,7 +60,7 @@ const submitFile = async () => {
 
 <template>
   <div class="container">
-    <h1>Docker Image Upload Demo</h1>
+    <h1>Docker Image URL Demo</h1>
     <br>
     <h5>Ngô Thị Thúy Nhi</h5>
     <h5>Nguyễn Phương Ngân</h5>
@@ -77,8 +69,8 @@ const submitFile = async () => {
     <h5>Lê Xuân Thành Hưng</h5>
 
     <div class="upload-box">
-      <input type="file" ref="fileInput" @change="handleFileChange" class="file-input" accept="image/*" />
-      <button @click="submitFile" :disabled="!selectedFile">Upload Image</button>
+      <input type="text" v-model="imageUrl" placeholder="Enter Image URL" class="url-input" />
+      <button @click="submitUrl" :disabled="!imageUrl">Add Image</button>
     </div>
 
     <p v-if="message" class="message">{{ message }}</p>
@@ -116,10 +108,12 @@ const submitFile = async () => {
   flex-wrap: wrap;
 }
 
-.file-input {
+.url-input {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  width: 60%;
+  min-width: 200px;
 }
 
 button {
